@@ -1,0 +1,45 @@
+Arguments: 
+  /usr/local/bin/node /opt/homebrew/bin/yarn add vuetify@^3.3.4
+
+PATH: 
+  /Users/diego/.bun/bin:/bin:/usr/bin:/usr/local/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/Library/Frameworks/Python.framework/Versions/3.9/bin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/Library/Apple/usr/bin:/Users/diego/Library/Application Support/JetBrains/Toolbox/scripts
+
+Yarn version: 
+  1.22.17
+
+Node version: 
+  18.10.0
+
+Platform: 
+  darwin arm64
+
+Trace: 
+  Error: EACCES: permission denied, mkdir '/Users/diego/Documents/BBVA/PWA/memory-card/MemoryCardGame/node_modules/chalk/node_modules'
+
+npm manifest: 
+  {
+    "name": "memory-card",
+    "private": true,
+    "version": "0.0.0",
+    "type": "module",
+    "scripts": {
+      "dev": "vite",
+      "build": "vite build",
+      "preview": "vite preview"
+    },
+    "dependencies": {
+      "vue": "^3.2.47",
+      "vue-router": "^4.2.2"
+    },
+    "devDependencies": {
+      "@vitejs/plugin-vue": "^4.1.0",
+      "vite": "^4.3.9",
+      "vite-plugin-pwa": "^0.16.4"
+    }
+  }
+
+yarn manifest: 
+  No manifest
+
+Lockfile: 
+  No lockfile

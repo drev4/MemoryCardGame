@@ -64,15 +64,23 @@ button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
 }
 
-.card {
-  padding: 2em;
-}
 
 #app {
-  max-width: 1280px;
   margin: 0 auto;
-  padding: 2rem;
   text-align: center;
+  position: absolute;
+  top: 0;
+  width: 100%;
+  left: 0;
+
+}
+#mainApp { 
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-items: center;
+  justify-content: center;
+  height: 90vh;
 }
 
 @media (prefers-color-scheme: light) {
