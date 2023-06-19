@@ -5,13 +5,9 @@
   </div>
 </template>
 
-<script>
+<script setup>
 import Toolbar from './components/Toolbar.vue';
 
-export default {
-    name: "App",
-    components: { Toolbar }
-};
 </script>
 
 <style scoped>

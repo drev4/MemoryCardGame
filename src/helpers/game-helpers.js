@@ -7,7 +7,7 @@ export const GameGenerator = {
         low: { label: "Bajo", time: 10, points: 10, numbersToFind: 1 },
         medium: { label: "Medio", time: 5, points: 20, numbersToFind: 1 },
         high: { label: "Alto", time: 2, points: 30, numbersToFind: 1 },
-        extreme: { label: "Extremo", time: 10, points: 50, numbersToFind: 3 }
+        extreme: { label: "Extremo", time: 5, points: 50, numbersToFind: 3 }
     },
     /**
      * Genera un array para el tablero del juego.

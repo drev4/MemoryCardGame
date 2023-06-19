@@ -5,24 +5,15 @@
                 {{ level.data.label }}
             </option>
         </select>
-        <button 
-            v-if="!showTimer && showStartBtn" 
-            @click="handleStartGame" 
-            class="main-button"
-        >Comenzar juego</button>
+        <button v-if="!showTimer && showStartBtn" @click="handleStartGame" class="main-button">Comenzar juego</button>
 
         <div v-if="restartingGame">Reiniciando...</div>
         <div v-if="nextLevel">Genial. Cargando siguiente...</div>
         <div v-if="showTimer" class="timer">Tiempo restante: {{ timer }}</div>
-        <div v-if="numberToFind.length">Encuentra el número {{ numberToFind.join(", ") }}</div>
+        <div v-if="nnumberToFind && numberToFind.length">Encuentra el número {{ numberToFind.join(", ") }}</div>
 
         <div class="cards-container" v-if="getCards && getCards.length">
-            <NumberCard 
-                v-for="card in getCards"
-                :key="card.id"
-                :card="card"
-                @flip-card="onFlipCard"
-            />
+            <NumberCard v-for="card in getCards" :key="card.id" :card="card" @flip-card="onFlipCard" />
         </div>
     </div>
 </template>
@@ -33,6 +24,7 @@ import { GameGenerator } from '../helpers/game-helpers';
 import { useStore } from '../store/store';
 
 import NumberCard from '../components/NumberCard.vue';
+import { onBeforeRouteLeave } from 'vue-router';
 
 const gameStore = useStore()
 const points = ref(0);
@@ -49,16 +41,23 @@ const countNumberToFind = ref(1);
 
 const getCards = computed(() => cards.value);
 const getDifficultyLevels = computed(() => Object.entries(difficultyLevels).map(([key, value]) => ({
-        value: key,
-        data: value,
-    }))
+    value: key,
+    data: value,
+}))
 );
 
+/**
+ * Reinicia los puntos y genera un nuevo tablero de juego.
+ */
 const handleStartGame = () => {
     points.value = 0;
     generateNewGameBoard();
 };
 
+/**
+ * Genera un nuevo tablero de juego inicializando el temporizador,
+ * estableciendo el nivel de dificultad y creando las cartas.
+ */
 const generateNewGameBoard = () => {
     showTimer.value = true;
     timer.value = difficultyLevels[difficulty.value].time;
@@ -68,6 +67,10 @@ const generateNewGameBoard = () => {
     startTimer();
 }
 
+/**
+ * Inicia el temporizador y, una vez que llega a cero, reinicia las cartas
+ * y selecciona un conjunto de números aleatorios para encontrar.
+ */
 const startTimer = () => {
     numberToFind.value = [];
     const interval = setInterval(() => {
@@ -81,6 +84,13 @@ const startTimer = () => {
     }, 1000);
 };
 
+/**
+ * Maneja el evento de descubrir una carta. Si el número en la carta coincide
+ * con el número a encontrar, se actualizan los puntos y se pasa al siguiente nivel (Mismo nivel, nuevo tablero).
+ * Si no coincide, se reinicia el juego.
+ * 
+ * @param {Object} card - El objeto de la carta que se voltea.
+ */
 const onFlipCard = (card) => {
     if (showTimer.value) return;
     if (!numberToFind.value.length) return;
@@ -122,7 +132,14 @@ const onFlipCard = (card) => {
 };
 
 watch(points, () => {
-  gameStore.updatePoints(points.value);
+    //Se actualizan los puntos en la store
+    gameStore.updatePoints(points.value);
+})
+
+onBeforeRouteLeave((to, from) => {
+    //Se limpia la store al salir del juego
+    gameStore.updateName("");
+    gameStore.updatePoints(0);
 })
 
 </script>
@@ -149,7 +166,9 @@ watch(points, () => {
     width: 80vw;
     max-width: 500px;
 }
+
 .game-input {
+    max-width: 300px;
     width: 30vw;
     padding: 12px;
 }

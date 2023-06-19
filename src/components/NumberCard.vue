@@ -6,7 +6,7 @@
       @click="handleFlipCard"
     >
       <div>
-        <div>{{ card.flipped ? card.number : '?' + card.number }}</div>
+        <div>{{ card.flipped ? card.number : '?' }}</div>
       </div>
     </div>
   </template>
