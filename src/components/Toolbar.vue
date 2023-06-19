@@ -13,10 +13,15 @@
   
   <script setup>
     import { useStore } from '../store/store';
+    import { computed } from 'vue'
 
     const store = useStore()
-    const playerName = store.getName;
-    const playerPoints = store.getPoints;
+    const playerName = computed({
+        get(){ return store.getName; }
+    })
+    const playerPoints = computed({
+        get() { return store.getPoints; }
+    })
   </script>
   
   <style scoped>

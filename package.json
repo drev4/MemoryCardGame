@@ -6,16 +6,21 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "vitest --dom"
   },
   "dependencies": {
+    "happy-dom": "^6.0.4",
     "pinia": "^2.1.4",
     "vue": "^3.2.47",
     "vue-router": "^4.2.2"
   },
   "devDependencies": {
+    "@testing-library/vue": "^7.0.0",
     "@vitejs/plugin-vue": "^4.1.0",
+    "@vue/test-utils": "^2.3.2",
     "vite": "^4.3.9",
-    "vite-plugin-pwa": "^0.16.4"
+    "vite-plugin-pwa": "^0.16.4",
+    "vitest": "^0.32.2"
   }
 }

@@ -1,183 +1,157 @@
 <template>
     <div class="game">
-      <select v-model="difficulty">
-        <option value="bajo">Bajo</option>
-        <option value="medio">Medio</option>
-        <option value="alto">Alto</option>
-      </select>
-      <button v-if="!showTimer" @click="startGame">Comenzar juego</button>
+        <select v-model="difficulty" v-if="showStartBtn" class="game-input">
+            <option v-for="level in getDifficultyLevels" :key="level.value" :value="level.value">
+                {{ level.data.label }}
+            </option>
+        </select>
+        <button 
+            v-if="!showTimer && showStartBtn" 
+            @click="handleStartGame" 
+            class="main-button"
+        >Comenzar juego</button>
 
-      
-    
-        <div v-if="showTimer" class="timer">
-        Tiempo restante: {{ timer }}
-        </div>
-        <div v-if="numberToFind">
-            Encuentra el {{ numberToFind }}
-        </div>
-        <div class="cards-container">
-            <div
-                v-for="card in cards"
+        <div v-if="restartingGame">Reiniciando...</div>
+        <div v-if="nextLevel">Genial. Cargando siguiente...</div>
+        <div v-if="showTimer" class="timer">Tiempo restante: {{ timer }}</div>
+        <div v-if="numberToFind.length">Encuentra el número {{ numberToFind.join(", ") }}</div>
+
+        <div class="cards-container" v-if="getCards && getCards.length">
+            <NumberCard 
+                v-for="card in getCards"
                 :key="card.id"
-                class="card"
-                :style="card.flipped && card.ok && card.ok == 'ok' ? 'background-color: green' : card.flipped && card.ok && card.ok == 'no' ? 'background-color: red' : '' "
-                :class="{ flipped: card.flipped }"
-                @click="flipCard(card)"
-            >
-                <div>
-                    <div>{{ card.flipped ? card.number : '?' }}</div>
-                </div>
-            </div>
+                :card="card"
+                @flip-card="onFlipCard"
+            />
         </div>
     </div>
-  </template>
+</template>
   
-  <script>
-  export default {
-    name: "Game",
-    data() {
-      return {
-        username: "",
-        points: 0,
-        difficulty: "bajo",
-        cards: [],
-        showTimer: false,
-        timer: 0,
-        difficultyLevels: {
-          bajo: { time: 10, points: 10 },
-          medio: { time: 5, points: 20 },
-          alto: { time: 2, points: 30 },
-        },
-        numberToFind: null
-      };
-    },
-    methods: {
-      startGame() {
-        this.points = 0;
-        this.showTimer = true;
-        this.timer = this.difficultyLevels[this.difficulty].time;
-        this.generateCards();
-        this.startTimer();
-      },
-      generateCards() {
-        const numbers = this.shuffleNumbers();
-        this.cards = numbers.map((number, index) => ({
-          id: index,
-          number,
-          flipped: true
-        }));
-      },
-      shuffleNumbers() {
-        const numbers = Array.from({ length: 9 }, (_, i) => i + 1);
-        for (let i = numbers.length - 1; i > 0; i--) {
-          const j = Math.floor(Math.random() * (i + 1));
-          [numbers[i], numbers[j]] = [numbers[j], numbers[i]];
-        }
-        return numbers;
-      },
-      startTimer() {
-        this.numberToFind = null
-        const interval = setInterval(() => {
-          this.timer--;
-          if (this.timer === 0) {
+<script setup>
+import { computed, ref, watch } from 'vue';
+import { GameGenerator } from '../helpers/game-helpers';
+import { useStore } from '../store/store';
+
+import NumberCard from '../components/NumberCard.vue';
+
+const gameStore = useStore()
+const points = ref(0);
+const difficulty = ref('low');
+const cards = ref([]);
+const showTimer = ref(false);
+const timer = ref(0);
+const numberToFind = ref([]);
+const difficultyLevels = GameGenerator.difficultyLevels;
+const showStartBtn = ref(true);
+const restartingGame = ref(false);
+const nextLevel = ref(false);
+const countNumberToFind = ref(1);
+
+const getCards = computed(() => cards.value);
+const getDifficultyLevels = computed(() => Object.entries(difficultyLevels).map(([key, value]) => ({
+        value: key,
+        data: value,
+    }))
+);
+
+const handleStartGame = () => {
+    points.value = 0;
+    generateNewGameBoard();
+};
+
+const generateNewGameBoard = () => {
+    showTimer.value = true;
+    timer.value = difficultyLevels[difficulty.value].time;
+    countNumberToFind.value = difficultyLevels[difficulty.value].numbersToFind
+    showStartBtn.value = false;
+    cards.value = GameGenerator.generateCards();
+    startTimer();
+}
+
+const startTimer = () => {
+    numberToFind.value = [];
+    const interval = setInterval(() => {
+        timer.value--;
+        if (timer.value === 0) {
             clearInterval(interval);
-            this.showTimer = false;
-            this.cards.map(card => card.flipped = false)
-            this.numberToFind = this.getRandomNumber()
-            // Lógica de ocultar las tarjetas y finalizar el juego
-          }
-        }, 1000);
-      },
-      flipCard(card) {
-        if (this.showTimer) return 
-        if (!this.numberToFind) return
-        
-        card.flipped = true
-        if(card.number == this.numberToFind) {
-            card.ok = "ok"
-            this.points += this.difficultyLevels[this.difficulty].points
-            this.numberToFind = null
-            setTimeout(() => {
-                this.startGame()
-            }, 5000)
-        } else {
-            card.ok = "no"
-            this.numberToFind = null
-            setTimeout(() => {
-                this.points = 0;
-                this.cards = [];
-                this.timer = 0;
-            }, 5000)
-            
+            showTimer.value = false;
+            cards.value.map((card) => (card.flipped = false));
+            numberToFind.value = GameGenerator.getNRandomNumbers(difficultyLevels[difficulty.value].numbersToFind);
         }
-      },
-      getRandomNumber() {
-        return Math.floor(Math.random() * 9) + 1;
-      }
-    },
-  };
-  </script>
+    }, 1000);
+};
+
+const onFlipCard = (card) => {
+    if (showTimer.value) return;
+    if (!numberToFind.value.length) return;
+
+    card.flipped = true;
+    if (numberToFind.value.includes(card.number) && countNumberToFind.value <= 1) {
+        card.ok = 'ok';
+        points.value += difficultyLevels[difficulty.value].points;
+        numberToFind.value = [];
+        nextLevel.value = true;
+        setTimeout(() => {
+            generateNewGameBoard();
+            nextLevel.value = false;
+        }, 2000);
+    }
+    else if (numberToFind.value.includes(card.number) && countNumberToFind.value > 1) {
+        card.ok = 'ok';
+        countNumberToFind.value--;
+    }
+    else if (!numberToFind.value.includes(card.number)) {
+        card.ok = 'no';
+        numberToFind.value = [];
+        restartingGame.value = true;
+
+        if ('vibrate' in navigator) {
+            // Vibra durante 1000 milisegundos (1 segundo) Si el navegador es compatible
+            navigator.vibrate(1000);
+        }
+
+        setTimeout(() => {
+            points.value = 0;
+            cards.value = [];
+            timer.value = 0;
+            showStartBtn.value = true
+            restartingGame.value = false;
+            countNumberToFind.value = 1;
+        }, 2000);
+    }
+};
+
+watch(points, () => {
+  gameStore.updatePoints(points.value);
+})
+
+</script>
+  
 
 <style>
 .cards-container {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  grid-gap: 1rem;
-  grid-auto-rows: 5rem;
-  margin-top: 20px;
-  width: 100%;
-}
-
-.card {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  max-height: 100px;
-  border: 1px solid #ccc;
-  font-size: 24px;
-  cursor: pointer;
-  perspective: 1000px;
-  transition: transform 0.6s;
-}
-
-.card-inner {
-  width: 100%;
-  height: 100%;
-  text-align: center;
-  transition: transform 0.6s;
-  transform-style: preserve-3d;
-}
-
-.card.flipped .card-inner {
-  transform: rotateY(180deg);
-}
-
-.card .card-front,
-.card .card-back {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  backface-visibility: hidden;
-}
-
-.card .card-front {
-  background-color: #fff;
-}
-
-.card .card-back {
-  background-color: #ccc;
-  transform: rotateY(180deg);
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-gap: 1rem;
+    grid-auto-rows: 5rem;
+    margin-top: 20px;
+    width: 100%;
 }
 
 .timer {
-  margin-top: 20px;
+    margin-top: 20px;
 }
+
 .game {
     display: flex;
     flex-direction: column;
     align-items: center;
     width: 80vw;
     max-width: 500px;
+}
+.game-input {
+    width: 30vw;
+    padding: 12px;
 }
 </style>
 

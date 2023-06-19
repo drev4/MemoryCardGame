@@ -12,7 +12,6 @@ export const useStore = defineStore('store', {
   actions: {
     updateName(newName) {
       this.name = newName;
-      console.log(newName, this);
     },
     updatePoints(newPoints) {
       this.points = newPoints;
